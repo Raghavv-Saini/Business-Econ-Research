@@ -40,3 +40,15 @@ def test_audit_record_passes_clean_record():
     }
     issues = audit_record(clean)
     assert issues == []
+
+
+def test_audit_record_catches_track2_directory_and_future_year_leakage():
+    dir_rec = {
+        "record_id": "OPTB-003",
+        "track": "track2_yc",
+        "t0_year": 2009,
+        "meta": {"blinding_entities": {"company_aliases": ["Mixpanel"], "founder_names": [], "portal_names": [], "product_terms": []}},
+        "t0_payload": {"pitch_text": "Previously founder at Mixpanel (2009-2019). Status: Active. Team Size: 410."},
+    }
+    issues = audit_record(dir_rec)
+    assert len(issues) >= 2

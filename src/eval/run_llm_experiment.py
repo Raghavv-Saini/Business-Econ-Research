@@ -148,10 +148,20 @@ def run_experiment(
     completed = load_completed_keys(str(out_path))
     write_header = not out_path.exists() or out_path.stat().st_size == 0
 
-    t1_ids = [r["record_id"] for r in records if r.get("track") == "track1_sec"]
+    t1_by_stratum: dict[str, list[str]] = {}
+    for r in records:
+        if r.get("track") == "track1_sec":
+            st = str((r.get("meta") or {}).get("prelim_stratum") or "default")
+            t1_by_stratum.setdefault(st, []).append(r["record_id"])
+    t1_stratified: list[str] = []
+    max_len = max((len(v) for v in t1_by_stratum.values()), default=0)
+    for idx in range(max_len):
+        for st in sorted(t1_by_stratum):
+            if idx < len(t1_by_stratum[st]):
+                t1_stratified.append(t1_by_stratum[st][idx])
     t2_ids = [r["record_id"] for r in records if r.get("track") == "track2_yc"]
-    ablation_ids = set(t2_ids) | set(t1_ids[:40])
-    reliability_ids = set(t1_ids[:10]) | set(t2_ids[:10])
+    ablation_ids = set(t2_ids) | set(t1_stratified[:40])
+    reliability_ids = set(t1_stratified[:10]) | set(t2_ids[:10])
 
     tasks: list[tuple[str, str, str, int, str]] = []
     for rec in records:

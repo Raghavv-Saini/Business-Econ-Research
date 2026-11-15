@@ -18,6 +18,13 @@ LEAKAGE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("raised Series round", re.compile(r"\braised\s+series\s+[a-z]\b", re.IGNORECASE)),
 ]
 
+TRACK2_LEAKAGE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    ("YC directory Status", re.compile(r"\bStatus:\s*(?:Active|Inactive|Acquired|Public)\b", re.IGNORECASE)),
+    ("YC directory Team Size", re.compile(r"\bTeam\s+Size:\s*\d+", re.IGNORECASE)),
+    ("Wayback toolbar", re.compile(r"\b\d+\s+captures\b.*?\b20\d\d\b", re.IGNORECASE)),
+    ("Retrospective Unicorn", re.compile(r"\b\d+\s+Unicorns\b", re.IGNORECASE)),
+]
+
 URL_RE = re.compile(r"(?:https?://|www\.)\S+", re.IGNORECASE)
 
 
@@ -32,6 +39,19 @@ def audit_record(record: dict[str, Any]) -> list[str]:
     for label, pat in LEAKAGE_PATTERNS:
         if pat.search(pitch_text):
             issues.append(f"Post-T0 leakage pattern matched: {label}")
+
+    if record.get("track") == "track2_yc":
+        for label, pat in TRACK2_LEAKAGE_PATTERNS:
+            if pat.search(pitch_text):
+                issues.append(f"Post-T0 Track 2 leakage pattern matched: {label}")
+        t0_yr = record.get("t0_year")
+        if isinstance(t0_yr, int):
+            future_yrs = [
+                yr for yr in re.findall(r"\b(20\d\d)\b", pitch_text)
+                if int(yr) >= t0_yr + 5
+            ]
+            if future_yrs:
+                issues.append(f"Post-T0 future year(s) in Track 2 pitch_text (t0={t0_yr}): {sorted(set(future_yrs))}")
 
     blinded = blind_payload(record, "blinded_T0")
     blinded_text = str((blinded.get("t0_payload") or {}).get("pitch_text") or "")

@@ -21,7 +21,7 @@ USER_AGENT = "BusinessEconResearchBot/1.0 (academic-research; contact: research@
 URL_OVERRIDES: dict[str, str] = {
     "OPTB-002": "https://about.gitlab.com/2016/09/30/gitlabs-application-for-y-combinator-winter-2015/",
 }
-EXCLUDED_NON_T0_IDS: set[str] = {"OPTB-015"}
+EXCLUDED_NON_T0_IDS: set[str] = {"OPTB-003", "OPTB-004", "OPTB-008", "OPTB-015"}
 
 VERIFIED_EXTRA_APPS: list[dict[str, Any]] = [
     {
@@ -112,11 +112,34 @@ VERIFIED_EXTRA_APPS: list[dict[str, Any]] = [
 ]
 
 
+_QA_START_RE = re.compile(
+    r"(?:Company name:|Describe what your company|What is your company going to make|Please tell us in one or two sentences|What are you going to make)",
+    re.IGNORECASE,
+)
+
+
+def strip_post_t0_wrappers(text: str, source_url: str = "") -> str:
+    """Remove Wayback toolbar chrome, blog bylines, and retrospective intros before YC Q&A."""
+    cleaned = re.sub(r"^.*?\bAbout this capture\b\s*", "", text, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\bUpdated\s+\d{1,2}/\d{1,2}/20\d\d\b", "", cleaned, flags=re.IGNORECASE)
+    if "makersclaw.com" in source_url.lower() or len(cleaned) > 1200:
+        m = _QA_START_RE.search(cleaned)
+        if m and m.start() > 0:
+            cleaned = cleaned[m.start():]
+    cleaned = re.sub(r"\s*(?:©|Copyright)\s*20\d\d.*$", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\s*(?:Read the blog|Related\s+posts?|Published\s+\d{1,2}\s+[A-Za-z]+\s+20\d\d).*$", "", cleaned, flags=re.IGNORECASE)
+    return re.sub(r"\s+", " ", cleaned).strip()
+
+
 def extract_clean_text_from_html(html: str) -> str:
     """Strip boilerplate HTML tags and return normalized prose text."""
     soup = BeautifulSoup(html, "html.parser")
     for tag in soup(["script", "style", "nav", "header", "footer", "aside", "noscript", "svg"]):
         tag.decompose()
+    for wb_id in ("wm-ipp-base", "wm-ipp", "donato"):
+        wb = soup.find(id=wb_id)
+        if wb:
+            wb.decompose()
     main = soup.find("article") or soup.find("main") or soup.body or soup
     text = main.get_text(separator=" ", strip=True)
     return re.sub(r"\s+", " ", text).strip()
@@ -160,7 +183,8 @@ def build_track2_record(
     if status == "populated_ready":
         pitch_text = _compose_populated_pitch(blended)
     elif harvested_text and len(harvested_text.strip()) >= 200:
-        pitch_text = harvested_text.strip()[:8000]
+        cleaned = strip_post_t0_wrappers(harvested_text, str(meta.get("source_url", "")))
+        pitch_text = cleaned[:8000] if len(cleaned) >= 200 else ""
     else:
         return None
 

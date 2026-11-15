@@ -193,6 +193,7 @@ def _load_records(jsonl_paths: list[Path]) -> pd.DataFrame:
                         "record_id": rec["record_id"],
                         "track": rec.get("track"),
                         "t0_year": rec.get("t0_year"),
+                        "prelim_stratum": (rec.get("meta") or {}).get("prelim_stratum"),
                         "offering_amount": fin.get("offering_amount"),
                         "total_assets": fin.get("assets_recent", fin.get("total_assets")),
                         "revenues": fin.get("revenue_recent", fin.get("revenues")),
@@ -282,7 +283,7 @@ def _generate_figures(
             pred=("predicted_invest_prob", "mean"),
             obs=("funded_outcome", "mean"),
         )
-        ax.plot(cal["pred"], cal["obs"], "o-", linewidth=2, label="Blinded Gemini 2.5 Flash")
+        ax.plot(cal["pred"], cal["obs"], "o-", linewidth=2, label="Blinded Gemini 3.5 Flash-Lite")
     ax.plot([0, 1], [0, 1], "k--", linewidth=1, label="Perfect Calibration")
     ax.set_xlabel("Predicted Funding Probability")
     ax.set_ylabel("Observed Funding Rate")
@@ -332,26 +333,25 @@ def run_full_analysis(
     df_t1["log_assets"] = np.log1p(pd.to_numeric(df_t1["total_assets"], errors="coerce").clip(lower=0))
     df_t1["log_revenues"] = np.log1p(pd.to_numeric(df_t1["revenues"], errors="coerce").clip(lower=0))
 
-    # IPW weights from population counts if available
+    # IPW weights from population stratum counts
     df_t1["ipw_weight"] = 1.0
-    if pop_counts_json.exists():
+    if pop_counts_json.exists() and "prelim_stratum" in df_t1.columns:
         pop = json.loads(pop_counts_json.read_text(encoding="utf-8"))
-        yr_counts = pop.get("eligible_population_by_year", {})
-        sample_counts = df_t1["t0_year"].value_counts().to_dict()
+        sample_counts = df_t1["prelim_stratum"].value_counts().to_dict()
         weights = {}
-        for yr, s_cnt in sample_counts.items():
-            pop_cnt = yr_counts.get(str(int(yr))) or yr_counts.get(int(yr))
+        for stratum, s_cnt in sample_counts.items():
+            pop_cnt = pop.get(stratum)
             if pop_cnt and s_cnt > 0:
-                weights[yr] = float(pop_cnt) / float(s_cnt)
+                weights[stratum] = float(pop_cnt) / float(s_cnt)
         if weights:
-            df_t1["ipw_weight"] = df_t1["t0_year"].map(weights).fillna(1.0)
+            df_t1["ipw_weight"] = df_t1["prelim_stratum"].map(weights).fillna(1.0)
             df_t1["ipw_weight"] = df_t1["ipw_weight"] / df_t1["ipw_weight"].mean()
 
     # Stage 1 & Stage 2 Regressions
     regressions = {
         "stage1_funded_llm_only": _fit_glm_logit(df_t1, "funded_outcome", ["composite_score"]),
         "stage1_funded_full": _fit_glm_logit(df_t1, "funded_outcome", ["composite_score", "log_offering", "log_assets", "log_revenues"]),
-        "stage1_funded_ipw": _fit_glm_logit(df_t1, "funded_outcome", ["composite_score", "log_offering", "log_assets"], weight_col="ipw_weight"),
+        "stage1_funded_ipw": _fit_glm_logit(df_t1, "funded_outcome", ["composite_score", "log_offering", "log_assets", "log_revenues"], weight_col="ipw_weight"),
     }
     df_t1_funded = df_t1[df_t1["funded_outcome"] == 1].copy()
     regressions["stage2_survival_llm_only"] = _fit_glm_logit(df_t1_funded, "survival_3y_outcome", ["composite_score"])
