@@ -9,10 +9,10 @@
 ## ABSTRACT
 
 - **Objective:** This study asks a practical question: can an AI model judge early-stage startups fairly using only the pitch and financial details available on launch day, without cheating from memory or following investor hype?
-- **Methodology:** We built a clean, launch-day dataset of **184** real startups: **165** U.S. crowdfunding startups (`Form C`, 2018–2020) tracked through Q3 2026 to see which ones got funded, survived three years, or raised major follow-on venture funding (`Form D`), alongside **19** original Y Combinator (YC) applications. Every startup passed an automated check confirming zero future spoilers (`0` violations). We then ran **496** AI evaluations across four scenarios: names hidden, real names shown, a positive investor comment, and a negative investor comment.
-- **Findings:** First, the AI is remarkably consistent when grading the same pitch multiple times (`99.85%` repeatability). Second, even when all company and founder names are hidden, the AI clearly spots stronger businesses—scoring elite YC applications at **79.5 out of 100** on average, compared to **38.3 out of 100** for typical crowdfunding startups. Third, revealing real company names did not significantly inflate average scores for either SEC startups or YC startups, though 2 out of 19 YC startups (`10.5%`) flipped from "reject" to "invest" once named. Short positive or negative investor comments barely moved the needle (`1.2%` to `2.3%` decision flips). Fourth, we uncovered a striking difference between retail crowdfunding and professional venture capital: everyday crowdfunding backers mostly look at visible company assets and smaller fundraising goals, whereas the **blinded AI pitch score strongly predicts which funded startups later raise major institutional rounds or get acquired (`p = 0.0118`)**. Combining AI pitch scores with crowd funding and launch-day financials raises winner-prediction accuracy from **60.3%** (crowd alone) to **69.3%**.
+- **Methodology:** We built a clean, launch-day dataset of **184** real startups: **165** U.S. crowdfunding startups (`Form C`, 2018–2020) tracked through Q3 2026 to see which ones got funded, survived three years, or raised major follow-on venture funding (`Form D`), alongside **19** original Y Combinator (YC) applications. Every startup passed an automated check confirming zero future spoilers (`0` violations). We then ran **442** AI evaluations across four scenarios: names hidden, real names shown, a positive investor comment, and a negative investor comment.
+- **Findings:** First, the AI is remarkably consistent when grading the same pitch multiple times (`99.85%` repeatability). Second, even when all company and founder names are hidden, the AI clearly spots stronger businesses—scoring elite YC applications at **79.5 out of 100** on average, compared to **38.3 out of 100** for typical crowdfunding startups. Third, revealing real company names did not significantly inflate average scores for either SEC startups or YC startups, though 2 out of 19 YC startups (`10.5%`) flipped from "reject" to "invest" once named. **By contrast, adding a single-sentence investor comment strongly swayed the AI**: a positive note boosted scores by **+4.74 points** (`p < 0.0001`), while a negative note pushed scores down by **-3.93 points** (`p < 0.0001`), flipping investment decisions **6.8%** to **8.5%** of the time. Fourth, we uncovered a striking difference between retail crowdfunding and professional venture capital: everyday crowdfunding backers mostly look at visible company assets and smaller fundraising goals, whereas the **blinded AI pitch score strongly predicts which funded startups later raise major institutional rounds or get acquired (`p = 0.0116`)**. Combining AI pitch scores with crowd funding and launch-day financials raises winner-prediction accuracy from **60.3%** (crowd alone) to **69.1%**, and when both the crowd and the AI agreed to invest (`6` startups), **100% (`6/6`)** became institutional winners.
 - **Contribution:** We bridge Csaszar, Ketkar, & Kim's (2024) AI strategy-evaluation framework and Kleinert & Urbig's (2026) crowdfunding study with a reproducible, spoiler-free SEC dataset and practical human-plus-AI screening benchmarks.
-- **Limitation:** Free-tier API limits required a 496-call sample design rather than repeating every condition three times on all 184 startups, and the AI's raw probability estimates are overly cautious until calibrated against real-world funding rates.
+- **Limitation:** Free-tier API limits required a 442-call sample design rather than repeating every condition three times on all 184 startups, and the AI's raw probability estimates are overly cautious until calibrated against real-world funding rates.
 - **Novelty:** To our knowledge, this is the first study to pair a spoiler-free 2018–2020 SEC crowdfunding cohort (tracked through 2026) with original YC applications and controlled name/hype experiments under one unified screening prompt.
 - **Keywords:** Artificial Intelligence, Startup Screening, Equity Crowdfunding, Hindsight Bias, Venture Capital, Investor Hype.
 
@@ -78,7 +78,7 @@ All **184** startups passed an automated anti-spoiler audit with **zero violatio
 
 ### 3.3 Running the AI Evaluator
 
-Using Google's `gemini-3.5-flash-lite` with one consistent investor prompt, we collected **496** evaluations across all four test conditions. For every startup, the AI scored 10 business areas from 0 to 100, gave an overall composite score, made a yes/no investment call, and estimated funding and survival chances.
+Using Google's `gemini-3.5-flash-lite` with one consistent investor prompt, we collected **442** evaluations across all four test conditions. For every startup, the AI scored 10 business areas from 0 to 100, gave an overall composite score, made a yes/no investment call, and estimated funding and survival chances.
 
 ---
 
@@ -92,18 +92,22 @@ When asked to grade the same startups multiple times, the AI was remarkably stea
 |---|---|---:|---:|
 | SEC Crowdfunding | Names Hidden (Baseline) | 199 | 38.3 |
 | SEC Crowdfunding | Real Names Shown | 67 | 39.4 |
-| SEC Crowdfunding | Positive Investor Note | 67 | 38.2 |
-| SEC Crowdfunding | Negative Investor Note | 67 | 38.0 |
+| SEC Crowdfunding | Positive Investor Note | 40 | 46.7 |
+| SEC Crowdfunding | Negative Investor Note | 40 | 36.2 |
 | YC Tier-A | Names Hidden (Baseline) | 39 | 79.5 |
 | YC Tier-A | Real Names Shown | 19 | 79.1 |
-| YC Tier-A | Positive Investor Note | 19 | 77.5 |
-| YC Tier-A | Negative Investor Note | 19 | 77.0 |
+| YC Tier-A | Positive Investor Note | 19 | 78.4 |
+| YC Tier-A | Negative Investor Note | 19 | 73.8 |
 
 ### 4.2 Did Real Names or Investor Hype Sway the AI?
 
 Surprisingly, **revealing company names did not significantly inflate average scores** for either SEC startups (+0.92 points, `p = 0.273`) or YC startups (+1.20 points, `p = 0.212`). However, binary invest/reject decisions did flip on **10.5% (2 out of 19)** of famous YC startups when named, compared to just **1.5% (1 out of 67)** of SEC startups—showing that name blinding is still a worthwhile precaution for famous brands.
 
-Meanwhile, adding a short positive or negative comment from an "early investor" had almost no effect: average scores moved by less than 0.6 points (`p > 0.14`), and investment decisions flipped only **1.2%** to **2.3%** of the time.
+By contrast, **adding a short comment from an "early investor" had a clear, statistically significant herding effect** across the 59 paired startups tested:
+- **Positive investor hype** raised scores by **+4.74 points** on average (`p < 0.0001`) and flipped **6.8%** (`4/59`) of investment decisions.
+- **Negative investor skepticism** lowered scores by **-3.93 points** on average (`p < 0.0001`) and flipped **8.5%** (`5/59`) of investment decisions.
+
+This shows that even when company names are hidden, AI evaluators are vulnerable to **social-proof anchoring** if unverified investor sentiment is included in the prompt.
 
 ![Figure 1: Score Change When Company Names Are Shown vs. Hidden](../results/figures/fig1_blinding_memorization.png)
 
@@ -113,14 +117,14 @@ Meanwhile, adding a short positive or negative comment from an "early investor" 
 
 Comparing Stage 1 (crowdfunding) and Stage 2 (long-term outcomes) uncovered our central Business Economics finding:
 
-- **Everyday crowdfunding backers focus on visible size:** In Stage 1 (`165` startups), getting funded was strongly linked to having larger balance-sheet assets (`p = 0.0051`) and setting a smaller, more realistic fundraising target (`p = 0.0250` after weighting to match all 2,415 SEC startups). Once those financials were accounted for, the AI's pitch score did not separate funded from unfunded campaigns (`p = 0.703`).
-- **The AI spots qualities that attract professional investors:** In Stage 2 (`110` funded startups), raw launch-day accounting numbers could **not** tell which companies would later raise major institutional rounds (`Form D`) or get acquired (`p > 0.49`). Yet the **blinded AI pitch score significantly predicted those breakouts**—both on its own (`p = 0.0034`) and after controlling for launch-day financials (`p = 0.0118`).
+- **Everyday crowdfunding backers focus on visible size:** In Stage 1 (`165` startups), getting funded was strongly linked to having larger balance-sheet assets (`p = 0.0051`) and setting a smaller, more realistic fundraising target (`p = 0.0249` after weighting to match all 2,415 SEC startups). Once those financials were accounted for, the AI's pitch score did not separate funded from unfunded campaigns (`p = 0.7016`).
+- **The AI spots qualities that attract professional investors:** In Stage 2 (`110` funded startups), raw launch-day accounting numbers could **not** tell which companies would later raise major institutional rounds (`Form D`) or get acquired (`p > 0.49`). Yet the **blinded AI pitch score significantly predicted those breakouts**—on its own (`p = 0.0034`), after controlling for launch-day financials (`p = 0.0116`), and after population-weighting (`p = 0.0190`).
 
 | Stage & Outcome | Startups | Did the AI Score Predict It? | What Else Mattered? |
 |---|---:|---|---|
-| Stage 1: Campaign Funded | 165 | Not once financials are included (`p = 0.703`) | Larger company assets (`p = 0.0051`) & smaller target raise (`p = 0.0250`, weighted) |
-| Stage 2: 3-Year Survival | 110 | Weak positive link (`p = 0.165`) | Early revenue showed a mild positive trend (`p = 0.194`) |
-| **Stage 2: Institutional Breakout** | **110** | **Yes — strong predictor (`p = 0.0118`)** | Launch-day financials alone were not predictive (`p > 0.49`) |
+| Stage 1: Campaign Funded | 165 | Not once financials are included (`p = 0.7016`) | Larger company assets (`p = 0.0051`) & smaller target raise (`p = 0.0249`, weighted) |
+| Stage 2: 3-Year Survival | 110 | Weak positive link (`p = 0.1681`) | Early revenue showed a mild positive trend (`p = 0.1930`) |
+| **Stage 2: Institutional Breakout** | **110** | **Yes — strong predictor (`p = 0.0116`)** | Launch-day financials alone were not predictive (`p > 0.49`) |
 
 ### 4.4 Humans + AI Together Perform Best
 
@@ -129,11 +133,11 @@ When we tested predictions on held-out startups (5-fold cross-validation), **com
 | What Information Was Used | Outcome Predicted | Prediction Accuracy (ROC-AUC) | Winner Precision (PR-AUC) |
 |---|---|---:|---:|
 | Crowd Funding Signal Only | Institutional Breakout (`n = 165`) | 60.3% | 28.9% |
-| **AI + Crowd + Launch Financials** | **Institutional Breakout (`n = 165`)** | **69.3%** | **45.0%** |
-| AI Score Only | Stage 1 Funded (`n = 165`) | 57.4% | 73.8% |
+| **AI + Crowd + Launch Financials** | **Institutional Breakout (`n = 165`)** | **69.1%** | **44.4%** |
+| AI Score Only | Stage 1 Funded (`n = 165`) | 57.4% | 73.7% |
 | AI + Launch Financials | Stage 1 Funded (`n = 165`) | **69.1%** | **81.3%** |
 
-One important caveat: the AI's raw probability percentages were far too conservative compared to the real `66.7%` crowdfunding success rate. Fortunately, a simple statistical adjustment (recalibration) cut the probability error more than in half—from `0.486` down to `0.202`.
+A simple `"Both Invest"` rule confirms this synergy: among the `6` startups where both the crowd funded the offering and the blinded AI recommended investing, **100% (`6/6`)** later became institutional winners, compared to **21.4%** for all other startups. One important caveat: the AI's raw probability percentages were far too conservative compared to the real `66.7%` crowdfunding success rate. Fortunately, a simple statistical adjustment (recalibration) cut the probability error more than in half—from `0.486` down to `0.202`.
 
 ![Figure 3: Prediction Accuracy on Unseen Startups (Stage 1 and Stage 2)](../results/figures/fig3_roc_pr_curves.png)
 
@@ -143,15 +147,15 @@ One important caveat: the AI's raw probability percentages were far too conserva
 
 ## 5. KEY TAKEAWAYS
 
-1. **AI Reads Between the Lines of a Pitch:** While crowdfunding investors anchor on hard assets and small funding goals, a blinded AI picks up qualitative business strengths in the pitch memo that later attract professional VC/institutional investors (`p = 0.0118`).
-2. **Calibration Matters More Than Prompt Hype:** With proper name hiding, `gemini-3.5-flash-lite` resisted single-sentence investor hype and showed no major average score inflation when named. Its main flaw—overly cautious probability percentages—is easy to fix with recalibration.
-3. **AI Works Best Alongside Human Signals:** Neither the crowd nor the AI is enough on its own. Together (`69.3%` accuracy), they filter early-stage deals far better than the crowd alone (`60.3%`).
+1. **AI Reads Between the Lines of a Pitch:** While crowdfunding investors anchor on hard assets and small funding goals, a blinded AI picks up qualitative business strengths in the pitch memo that later attract professional VC/institutional investors (`p = 0.0116`).
+2. **Strip Out Investor Hype Before Prompting:** While `gemini-3.5-flash-lite` showed no major average score inflation from company names, single-sentence investor hype or skepticism shifted scores by **+4.74 / -3.93 points** (`p < 0.0001`). Prompts should stay strictly factual, and raw probability outputs should be recalibrated.
+3. **AI Works Best Alongside Human Signals:** Neither the crowd nor the AI is enough on its own. Together (`69.1%` accuracy), they filter early-stage deals far better than the crowd alone (`60.3%`).
 
 ---
 
 ## 6. CONCLUSION
 
-Across **184** spoiler-free startups (**165** SEC crowdfunding offerings tracked through Q3 2026 and **19** original Y Combinator applications), `gemini-3.5-flash-lite` graded pitches with `99.85%` repeatability, separated elite YC applications from typical crowdfunding filings even when blinded (`79.5` vs. `38.3`), and significantly predicted which funded startups later achieved institutional breakouts (`p = 0.0118`). Used alongside crowd signals and basic financials, calibrated AI screening offers a practical, transparent tool for early-stage venture evaluation.
+Across **184** spoiler-free startups (**165** SEC crowdfunding offerings tracked through Q3 2026 and **19** original Y Combinator applications), `gemini-3.5-flash-lite` graded pitches with `99.85%` repeatability and scored elite YC applications far higher than typical crowdfunding filings even with company names hidden (`79.5` vs. `38.3`). While the AI was measurably swayed when unverified investor hype or skepticism was added to the prompt (`+4.74` / `-3.93` points, `p < 0.0001`), keeping the prompt strictly blinded and factual unlocked real predictive signal: higher AI scores meaningfully predicted which funded startups later raised major venture funding or got acquired (`p = 0.0116`), and combining AI pitch scores with crowd interest and launch-day financials improved winner-prediction accuracy from **60.3%** (crowd alone) to **69.1%**. Used alongside human signals and basic financials, calibrated AI screening offers a practical, transparent tool for early-stage venture evaluation.
 
 ---
 

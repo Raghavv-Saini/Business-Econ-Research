@@ -17,6 +17,7 @@ from sklearn.metrics import (
     average_precision_score,
     brier_score_loss,
     confusion_matrix,
+    f1_score,
     precision_recall_curve,
     roc_auc_score,
     roc_curve,
@@ -156,22 +157,28 @@ def _fit_glm_logit(
         return {"n": int(len(sub)), "converged": False, "error": str(exc)}
 
 
-def _binary_eval_metrics(y_true: np.ndarray, probs: np.ndarray) -> dict[str, Any]:
+def _binary_eval_metrics(
+    y_true: np.ndarray,
+    probs: np.ndarray,
+    sample_weight: np.ndarray | None = None,
+) -> dict[str, Any]:
     if len(y_true) < 4 or len(np.unique(y_true)) < 2:
         return {"n": int(len(y_true)), "roc_auc": None}
     probs = np.clip(probs, 1e-6, 1.0 - 1e-6)
     raw_preds = (probs >= 0.5).astype(int)
-    base_rate = float(y_true.mean())
-    thresh = float(np.quantile(probs, 1.0 - base_rate))
+    base_rate = float(np.average(y_true, weights=sample_weight) if sample_weight is not None else y_true.mean())
+    thresh = float(np.quantile(probs, 1.0 - np.clip(base_rate, 0.01, 0.99)))
     matched_preds = (probs >= thresh).astype(int)
     return {
         "n": int(len(y_true)),
         "base_rate": base_rate,
-        "roc_auc": float(roc_auc_score(y_true, probs)),
-        "pr_auc": float(average_precision_score(y_true, probs)),
-        "brier_score": float(brier_score_loss(y_true, probs)),
-        "confusion_raw_05": confusion_matrix(y_true, raw_preds).tolist(),
-        "confusion_baserate_matched": confusion_matrix(y_true, matched_preds).tolist(),
+        "roc_auc": float(roc_auc_score(y_true, probs, sample_weight=sample_weight)),
+        "pr_auc": float(average_precision_score(y_true, probs, sample_weight=sample_weight)),
+        "brier_score": float(brier_score_loss(y_true, probs, sample_weight=sample_weight)),
+        "f1_raw_05": float(f1_score(y_true, raw_preds, sample_weight=sample_weight, zero_division=0)),
+        "f1_baserate_matched": float(f1_score(y_true, matched_preds, sample_weight=sample_weight, zero_division=0)),
+        "confusion_raw_05": confusion_matrix(y_true, raw_preds, sample_weight=sample_weight).tolist(),
+        "confusion_baserate_matched": confusion_matrix(y_true, matched_preds, sample_weight=sample_weight).tolist(),
         "baserate_threshold": thresh,
     }
 
@@ -356,23 +363,43 @@ def run_full_analysis(
     df_t1_funded = df_t1[df_t1["funded_outcome"] == 1].copy()
     regressions["stage2_survival_llm_only"] = _fit_glm_logit(df_t1_funded, "survival_3y_outcome", ["composite_score"])
     regressions["stage2_survival_full"] = _fit_glm_logit(df_t1_funded, "survival_3y_outcome", ["composite_score", "log_offering", "log_assets", "log_revenues"])
+    regressions["stage2_survival_ipw"] = _fit_glm_logit(df_t1_funded, "survival_3y_outcome", ["composite_score", "log_offering", "log_assets", "log_revenues"], weight_col="ipw_weight")
     regressions["stage2_winner_llm_only"] = _fit_glm_logit(df_t1_funded, "winner_breakout_outcome", ["composite_score"])
     regressions["stage2_winner_full"] = _fit_glm_logit(df_t1_funded, "winner_breakout_outcome", ["composite_score", "log_offering", "log_assets", "log_revenues"])
+    regressions["stage2_winner_ipw"] = _fit_glm_logit(df_t1_funded, "winner_breakout_outcome", ["composite_score", "log_offering", "log_assets", "log_revenues"], weight_col="ipw_weight")
 
     # Out-of-fold H4 Ensembles & Discrimination
-    stage1_sub = df_t1[["funded_outcome", "predicted_invest_prob"]].dropna()
-    stage2_sub = df_t1_funded[["survival_3y_outcome", "predicted_survival_prob"]].dropna()
+    stage1_sub = df_t1[["funded_outcome", "predicted_invest_prob", "ipw_weight"]].dropna()
+    stage2_sub = df_t1_funded[["survival_3y_outcome", "predicted_survival_prob", "ipw_weight"]].dropna()
+
+    # Both Invest agreement rule (Crowd funded_outcome == 1 AND LLM predicted_invest >= 0.5)
+    agree_sub = df_t1[["funded_outcome", "predicted_invest", "winner_breakout_outcome", "survival_3y_outcome"]].dropna(subset=["funded_outcome", "predicted_invest", "winner_breakout_outcome"]).copy()
+    agree_sub["human_invest"] = (agree_sub["funded_outcome"] == 1).astype(int)
+    agree_sub["llm_invest"] = (agree_sub["predicted_invest"] >= 0.5).astype(int)
+    agree_sub["both_invest"] = ((agree_sub["human_invest"] == 1) & (agree_sub["llm_invest"] == 1)).astype(int)
+    both_mask = agree_sub["both_invest"] == 1
+    both_invest_h4 = {
+        "n": int(len(agree_sub)),
+        "both_invest_n": int(both_mask.sum()),
+        "neither_invest_n": int(((agree_sub["human_invest"] == 0) & (agree_sub["llm_invest"] == 0)).sum()),
+        "winner_rate_both_invest": float(agree_sub.loc[both_mask, "winner_breakout_outcome"].mean()) if both_mask.any() else None,
+        "winner_rate_other": float(agree_sub.loc[~both_mask, "winner_breakout_outcome"].mean()) if (~both_mask).any() else None,
+        "winner_f1_both_invest": float(f1_score(agree_sub["winner_breakout_outcome"].astype(int), agree_sub["both_invest"], zero_division=0)),
+    }
 
     discrimination = {
         "stage1_llm_prob": _binary_eval_metrics(stage1_sub["funded_outcome"].to_numpy(), stage1_sub["predicted_invest_prob"].to_numpy()) if len(stage1_sub) else {},
+        "stage1_llm_prob_ipw": _binary_eval_metrics(stage1_sub["funded_outcome"].to_numpy(), stage1_sub["predicted_invest_prob"].to_numpy(), sample_weight=stage1_sub["ipw_weight"].to_numpy()) if len(stage1_sub) else {},
         "stage2_llm_prob": _binary_eval_metrics(stage2_sub["survival_3y_outcome"].to_numpy(), stage2_sub["predicted_survival_prob"].to_numpy()) if len(stage2_sub) else {},
+        "stage2_llm_prob_ipw": _binary_eval_metrics(stage2_sub["survival_3y_outcome"].to_numpy(), stage2_sub["predicted_survival_prob"].to_numpy(), sample_weight=stage2_sub["ipw_weight"].to_numpy()) if len(stage2_sub) else {},
         "oof_stage1_llm_only": compute_oof_ensemble(df_t1, "funded_outcome", ["composite_score"]),
         "oof_stage1_llm_plus_fin": compute_oof_ensemble(df_t1, "funded_outcome", ["composite_score", "log_offering", "log_assets", "log_revenues"]),
         "oof_stage2_llm_only": compute_oof_ensemble(df_t1_funded, "survival_3y_outcome", ["composite_score"]),
         "oof_stage2_fin_only": compute_oof_ensemble(df_t1_funded, "survival_3y_outcome", ["log_offering", "log_assets", "log_revenues"]),
-        "oof_stage2_hybrid_h4": compute_oof_ensemble(df_t1_funded, "survival_3y_outcome", ["composite_score", "log_offering", "log_assets", "log_revenues"]),
+        "oof_stage2_hybrid_h4": compute_oof_ensemble(df_t1_funded, "survival_3y_outcome", ["composite_score", "funding_ratio", "log_offering", "log_assets", "log_revenues"]),
         "oof_full_cohort_winner_crowd_only": compute_oof_ensemble(df_t1, "winner_breakout_outcome", ["funding_ratio"]),
         "oof_full_cohort_winner_hybrid": compute_oof_ensemble(df_t1, "winner_breakout_outcome", ["composite_score", "funding_ratio", "log_offering", "log_assets"]),
+        "both_invest_h4": both_invest_h4,
     }
 
     _generate_figures(df_agg, df_t1, figures_dir)

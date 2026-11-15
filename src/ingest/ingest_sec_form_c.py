@@ -98,6 +98,8 @@ def code_issuer_outcomes(
     c_tr_flags: dict[str, bool | None],
     has_form_d_post: bool,
     website_alive: bool,
+    amount_raised: float | None = None,
+    offering_amount: float | None = None,
 ) -> dict[str, Any]:
     """Code Stage 1 (funded_outcome) and Stage 2 (survival_3y_outcome, winner_breakout_outcome)."""
     c_dates = [_parse_date(s.get("date", "")) for s in submissions if s.get("type") == "C"]
@@ -114,7 +116,10 @@ def code_issuer_outcomes(
     elif has_cw:
         funded = 0
     elif has_cu:
-        funded = 1
+        if amount_raised is not None and offering_amount is not None and offering_amount > 0:
+            funded = 1 if amount_raised >= offering_amount else 0
+        else:
+            funded = 1
     else:
         funded = 0
 
@@ -379,10 +384,16 @@ def run_ingestion(repo_root: Path, target_n: int = 165, seed: int = 42) -> None:
 
             website = info.get("ISSUERWEBSITE", "").strip()
             website_alive = _check_website_alive(website) if cell_name == "funded_failed_or_delinquent_prelim" else False
-            outcomes = code_issuer_outcomes(all_subs_by_cik[cik], c_tr_flags, has_form_d_post, website_alive)
-
             off_amt = _safe_float(disc.get("OFFERINGAMOUNT")) or 0.0
             max_raised = max(cu_amounts) if cu_amounts else None
+            outcomes = code_issuer_outcomes(
+                all_subs_by_cik[cik],
+                c_tr_flags,
+                has_form_d_post,
+                website_alive,
+                amount_raised=max_raised,
+                offering_amount=off_amt,
+            )
             funding_ratio = (max_raised / off_amt) if (max_raised is not None and off_amt > 0) else (1.0 if outcomes["funded_outcome"] == 1 else 0.0)
             outcomes["amount_raised"] = max_raised
             outcomes["funding_ratio"] = round(funding_ratio, 4)

@@ -117,8 +117,8 @@ def _format_packet_prompt(packet: dict[str, Any]) -> str:
     parts = [f"STARTUP OFFERING PACKET (T0)\n\nPitch & Memo:\n{t0.get('pitch_text', '')}"]
     if t0.get("financials"):
         parts.append(f"T0 Financials:\n{json.dumps(t0['financials'], ensure_ascii=False)}")
-    if packet.get("social_cue"):
-        parts.append(f"Investor Note:\n{packet['social_cue']}")
+    if t0.get("social_cue"):
+        parts.append(f"Investor Note:\n{t0['social_cue']}")
     return "\n\n".join(parts)
 
 

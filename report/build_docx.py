@@ -127,6 +127,9 @@ def render_markdown_to_docx(md_path: str, figures_dir: str, out_docx: str) -> No
         elif stripped.startswith("- ") or stripped.startswith("* "):
             p = doc.add_paragraph(style="List Bullet")
             _add_formatted_runs(p, stripped[2:].strip())
+        elif re.match(r"^\d+\.\s+", stripped):
+            p = doc.add_paragraph(style="List Number")
+            _add_formatted_runs(p, re.sub(r"^\d+\.\s+", "", stripped))
         else:
             p = doc.add_paragraph()
             _add_formatted_runs(p, stripped)
