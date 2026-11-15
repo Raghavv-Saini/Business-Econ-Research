@@ -103,16 +103,16 @@ def _mask_text(text: str, rec_id: str, entities: dict[str, list[str]]) -> str:
     masked = _URL_RE.sub("[URL_REDACTED]", text)
     for alias in sorted(entities.get("company_aliases", []), key=len, reverse=True):
         if alias:
-            masked = re.sub(rf"\b{re.escape(alias)}\b", f"[{rec_id}_STARTUP]", masked, flags=re.IGNORECASE)
+            masked = re.sub(rf"(?<!\w){re.escape(alias)}(?!\w)", f"[{rec_id}_STARTUP]", masked, flags=re.IGNORECASE)
     for idx, fname in enumerate(sorted(entities.get("founder_names", []), key=len, reverse=True), start=1):
         if fname:
-            masked = re.sub(rf"\b{re.escape(fname)}\b", f"[FOUNDER_{idx}]", masked, flags=re.IGNORECASE)
+            masked = re.sub(rf"(?<!\w){re.escape(fname)}(?!\w)", f"[FOUNDER_{idx}]", masked, flags=re.IGNORECASE)
     for idx, pname in enumerate(sorted(entities.get("portal_names", []), key=len, reverse=True), start=1):
         if pname:
-            masked = re.sub(rf"\b{re.escape(pname)}\b", f"[PORTAL_{idx}]", masked, flags=re.IGNORECASE)
+            masked = re.sub(rf"(?<!\w){re.escape(pname)}(?!\w)", f"[PORTAL_{idx}]", masked, flags=re.IGNORECASE)
     for idx, term in enumerate(sorted(entities.get("product_terms", []), key=len, reverse=True), start=1):
         if term:
-            masked = re.sub(rf"\b{re.escape(term)}\b", f"[PRODUCT_TERM_{idx}]", masked, flags=re.IGNORECASE)
+            masked = re.sub(rf"(?<!\w){re.escape(term)}(?!\w)", f"[PRODUCT_TERM_{idx}]", masked, flags=re.IGNORECASE)
     return masked
 
 

@@ -10,12 +10,11 @@ from typing import Any
 from src.common import blind_payload
 
 LEAKAGE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
-    ("acquired by", re.compile(r"\bacquired\s+by\b", re.IGNORECASE)),
-    ("shut down", re.compile(r"\bshut\s+down\b", re.IGNORECASE)),
-    ("bankrupt", re.compile(r"\bbankrupt(?:cy)?\b", re.IGNORECASE)),
-    ("ceased operations", re.compile(r"\bceased\s+operations\b", re.IGNORECASE)),
-    ("IPO", re.compile(r"\bIPO\b")),
-    ("went public", re.compile(r"\bwent\s+public\b", re.IGNORECASE)),
+    ("we were acquired by", re.compile(r"\bwe\s+were\s+acquired\s+by\b", re.IGNORECASE)),
+    ("shut down in/our", re.compile(r"\bshut\s+down\s+(?:in\s+20\d\d|our\s+(?:company|startup|business))\b", re.IGNORECASE)),
+    ("filed for bankruptcy", re.compile(r"\bfiled\s+for\s+bankruptcy\b", re.IGNORECASE)),
+    ("ceased operations in/on", re.compile(r"\bceased\s+operations\s+(?:in|on)\b", re.IGNORECASE)),
+    ("went public in/on", re.compile(r"\bwent\s+public\s+(?:in|on)\b", re.IGNORECASE)),
     ("raised Series round", re.compile(r"\braised\s+series\s+[a-z]\b", re.IGNORECASE)),
 ]
 

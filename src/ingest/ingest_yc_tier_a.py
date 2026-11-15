@@ -21,6 +21,7 @@ USER_AGENT = "BusinessEconResearchBot/1.0 (academic-research; contact: research@
 URL_OVERRIDES: dict[str, str] = {
     "OPTB-002": "https://about.gitlab.com/2016/09/30/gitlabs-application-for-y-combinator-winter-2015/",
 }
+EXCLUDED_NON_T0_IDS: set[str] = {"OPTB-015"}
 
 VERIFIED_EXTRA_APPS: list[dict[str, Any]] = [
     {
@@ -295,6 +296,8 @@ def run_yc_ingestion(repo_root: Path, queue_path: Path = DEFAULT_QUEUE_PATH) -> 
 
     for rec in raw_records:
         rid = rec["record_id"]
+        if rid in EXCLUDED_NON_T0_IDS:
+            continue
         meta = rec.get("meta") or {}
         aliases = (meta.get("blinding_entities") or {}).get("company_aliases") or []
         yc_status = None
