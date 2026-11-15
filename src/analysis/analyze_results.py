@@ -194,8 +194,8 @@ def _load_records(jsonl_paths: list[Path]) -> pd.DataFrame:
                         "track": rec.get("track"),
                         "t0_year": rec.get("t0_year"),
                         "offering_amount": fin.get("offering_amount"),
-                        "total_assets": fin.get("total_assets"),
-                        "revenues": fin.get("revenues"),
+                        "total_assets": fin.get("assets_recent", fin.get("total_assets")),
+                        "revenues": fin.get("revenue_recent", fin.get("revenues")),
                         "employees": fin.get("employees"),
                         "funded_outcome": out.get("funded_outcome"),
                         "survival_3y_outcome": out.get("survival_3y_outcome"),
@@ -355,20 +355,24 @@ def run_full_analysis(
     }
     df_t1_funded = df_t1[df_t1["funded_outcome"] == 1].copy()
     regressions["stage2_survival_llm_only"] = _fit_glm_logit(df_t1_funded, "survival_3y_outcome", ["composite_score"])
-    regressions["stage2_survival_with_crowd"] = _fit_glm_logit(df_t1_funded, "survival_3y_outcome", ["composite_score", "funding_ratio"])
-    regressions["stage2_winner_with_crowd"] = _fit_glm_logit(df_t1_funded, "winner_breakout_outcome", ["composite_score", "funding_ratio"])
+    regressions["stage2_survival_full"] = _fit_glm_logit(df_t1_funded, "survival_3y_outcome", ["composite_score", "log_offering", "log_assets", "log_revenues"])
+    regressions["stage2_winner_llm_only"] = _fit_glm_logit(df_t1_funded, "winner_breakout_outcome", ["composite_score"])
+    regressions["stage2_winner_full"] = _fit_glm_logit(df_t1_funded, "winner_breakout_outcome", ["composite_score", "log_offering", "log_assets", "log_revenues"])
 
     # Out-of-fold H4 Ensembles & Discrimination
     stage1_sub = df_t1[["funded_outcome", "predicted_invest_prob"]].dropna()
-    stage2_sub = df_t1_funded[["survival_3y_outcome", "predicted_survival_prob", "funding_ratio"]].dropna()
+    stage2_sub = df_t1_funded[["survival_3y_outcome", "predicted_survival_prob"]].dropna()
 
     discrimination = {
         "stage1_llm_prob": _binary_eval_metrics(stage1_sub["funded_outcome"].to_numpy(), stage1_sub["predicted_invest_prob"].to_numpy()) if len(stage1_sub) else {},
         "stage2_llm_prob": _binary_eval_metrics(stage2_sub["survival_3y_outcome"].to_numpy(), stage2_sub["predicted_survival_prob"].to_numpy()) if len(stage2_sub) else {},
-        "oof_stage1_llm_plus_fin": compute_oof_ensemble(df_t1, "funded_outcome", ["composite_score", "log_offering", "log_assets"]),
+        "oof_stage1_llm_only": compute_oof_ensemble(df_t1, "funded_outcome", ["composite_score"]),
+        "oof_stage1_llm_plus_fin": compute_oof_ensemble(df_t1, "funded_outcome", ["composite_score", "log_offering", "log_assets", "log_revenues"]),
         "oof_stage2_llm_only": compute_oof_ensemble(df_t1_funded, "survival_3y_outcome", ["composite_score"]),
-        "oof_stage2_crowd_only": compute_oof_ensemble(df_t1_funded, "survival_3y_outcome", ["funding_ratio"]),
-        "oof_stage2_hybrid_h4": compute_oof_ensemble(df_t1_funded, "survival_3y_outcome", ["composite_score", "funding_ratio"]),
+        "oof_stage2_fin_only": compute_oof_ensemble(df_t1_funded, "survival_3y_outcome", ["log_offering", "log_assets", "log_revenues"]),
+        "oof_stage2_hybrid_h4": compute_oof_ensemble(df_t1_funded, "survival_3y_outcome", ["composite_score", "log_offering", "log_assets", "log_revenues"]),
+        "oof_full_cohort_winner_crowd_only": compute_oof_ensemble(df_t1, "winner_breakout_outcome", ["funding_ratio"]),
+        "oof_full_cohort_winner_hybrid": compute_oof_ensemble(df_t1, "winner_breakout_outcome", ["composite_score", "funding_ratio", "log_offering", "log_assets"]),
     }
 
     _generate_figures(df_agg, df_t1, figures_dir)
