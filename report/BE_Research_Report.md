@@ -9,11 +9,11 @@
 ## ABSTRACT
 
 - **Objective:** This study empirically tests whether a large language model (`gemini-3.5-flash-lite`) can evaluate early-stage startups strictly from point-in-time ($T_0$) offering disclosures without hindsight memorization bias or social-proof herding, and whether LLM-derived quality scores complement retail crowdfunding signals to predict post-campaign survival and institutional follow-on financing.
-- **Methodology:** We construct a dual-track, $T_0$-firewalled dataset of **184** real ventures: **165** U.S. SEC Regulation Crowdfunding `Form C` offerings from 2018–2020 (sampled across **2,415** eligible baseline CIKs and traced longitudinally through 2026Q3 via `C-U`, `C-AR`, `C-TR`, `Form D`, and issuer website liveness) and **19** cleaned verbatim $T_0$ Y Combinator Tier-A applications. All **184** records pass an automated $T_0$ leakage and entity-blinding audit (`0` violations). Across **313** verified `gemini-3.5-flash-lite` evaluations on the Track 1 cohort spanning four experimental arms (`blinded_T0`: 189, `unblinded_T0`: 42, `social_cue_pos`: 41, `social_cue_neg`: 41), we estimate two-stage nested unweighted and inverse-probability-weighted (IPW) logistic regressions (funded outcome $Y_1$, 3-year survival $Y_2$, institutional `Form D` / acquisition breakout $Y_3$), paired ablation tests ($\Delta_{\text{mem}}$, $\Delta_{\text{herd}}$), and 5-fold out-of-fold (OOF) hybrid ensembles ($H_4$).
-- **Findings:** First, inter-run scoring reliability across three independent repeats is exceptionally high (Cronbach's $\alpha = 0.9963$). Second, unblinding company and founder names on Track 1 (`n = 42`) produces no statistically significant score inflation ($\Delta_{\text{mem}} = -1.247$, $p = 0.148$, `0.0%` decision flips), and single-sentence early-investor social cues (`n = 41`) trigger `0.0%` decision flips (`social_cue_pos`: $\Delta = -0.872$, $p = 0.129$; `social_cue_neg`: $\Delta = -0.676$, $p = 0.322$). Third, while retail crowdfunding success in Stage 1 ($n = 165$) is primarily driven by observable balance-sheet size (`log_assets`: $\beta = 0.1076$, $p = 0.0051$; IPW-weighted `log_assets`: $\beta = 0.1013$, $p = 0.0051$, and `log_offering`: $\beta = -0.3882$, $p = 0.0250$), the blinded LLM `composite_score` significantly predicts Stage 2 institutional breakout (`Form D` / acquisition among funded issuers, $n = 110$: $\beta = 0.0395$, $p = 0.0034$ alone; $\beta = 0.0351$, $p = 0.0118$ controlling for $T_0$ financials). In 5-fold OOF cross-validation across the full cohort ($n = 165$), combining LLM scores, `funding_ratio`, and $T_0$ financials improves winner-breakout discrimination from `ROC-AUC = 0.603` (`PR-AUC = 0.289`) for crowd funding alone to `ROC-AUC = 0.693` (`PR-AUC = 0.450`).
+- **Methodology:** We construct a dual-track, $T_0$-firewalled dataset of **184** real ventures: **165** U.S. SEC Regulation Crowdfunding `Form C` offerings from 2018–2020 (sampled evenly across **2,415** eligible baseline CIKs in three preliminary strata and traced longitudinally through 2026Q3 via `C-U`, `C-AR`, `C-TR`, `Form D`, and issuer website liveness) and **19** cleaned verbatim $T_0$ Y Combinator Tier-A applications. All **184** records pass an automated $T_0$ leakage and entity-blinding audit (`0` violations). Across **496** structured API evaluations spanning four experimental arms (`blinded_T0`, `unblinded_T0`, `social_cue_pos`, `social_cue_neg`), we estimate two-stage nested unweighted and inverse-probability-weighted (IPW) logistic regressions (funded outcome $Y_1$, 3-year survival $Y_2$, institutional `Form D` / acquisition breakout $Y_3$), paired ablation tests ($\Delta_{\text{mem}}$, $\Delta_{\text{herd}}$), and 5-fold out-of-fold (OOF) hybrid ensembles ($H_4$).
+- **Findings:** First, inter-run scoring reliability across three independent repeats is exceptionally high (Cronbach's $\alpha = 0.9985$). Second, even under strict entity blinding, `gemini-3.5-flash-lite` sharply separates elite YC-caliber $T_0$ applications (mean = `79.49`, SD = `9.22`) from retail Reg CF filings (mean = `38.31`, SD = `16.62`). Third, unblinding company and founder names produces no statistically significant mean score inflation in Track 1 (`n = 67`: $\Delta_{\text{mem}} = +0.918$, $p = 0.273$, `1.49%` decision flips) or Track 2 (`n = 19`: $\Delta_{\text{mem}} = +1.198$, $p = 0.212$, though `10.53%` [2/19] of YC startups flipped binary investment decisions), while single-sentence early-investor social cues (`n = 86`) yield small, statistically insignificant shifts (`social_cue_pos`: $\Delta = -0.295$, $p = 0.420$, `1.16%` flips; `social_cue_neg`: $\Delta = -0.589$, $p = 0.140$, `2.33%` flips). Fourth, while retail crowdfunding success in Stage 1 ($n = 165$) is primarily driven by observable balance-sheet size (`log_assets`: $\beta = 0.1076$, $p = 0.0051$; IPW-weighted `log_assets`: $\beta = 0.1013$, $p = 0.0051$ and `log_offering`: $\beta = -0.3882$, $p = 0.0250$), the blinded LLM `composite_score` significantly predicts Stage 2 institutional breakout (`Form D` / acquisition among funded issuers, $n = 110$: $\beta = 0.0395$, $p = 0.0034$ alone; $\beta = 0.0351$, $p = 0.0118$ controlling for $T_0$ financials). In 5-fold OOF cross-validation across the full cohort ($n = 165$), combining LLM scores, `funding_ratio`, and $T_0$ financials improves winner-breakout discrimination from `ROC-AUC = 0.603` (`PR-AUC = 0.289`) for crowd funding alone to `ROC-AUC = 0.693` (`PR-AUC = 0.450`).
 - **Contribution:** We bridge Csaszar, Ketkar, & Kim's (2024) corporate strategic-screening framework and Kleinert & Urbig's (2026) crowdfunding-herding methodology with a reproducible, open-source SEC EDGAR longitudinal pipeline, stratum-weighted IPW estimation, and an automated $T_0$ firewall.
-- **Limitation:** After strengthening the $T_0$ firewall to strip post-$T_0$ editorial wrappers from Track 2 YC records, `gemini-3.5-flash-lite` hit its daily free-tier request cap before Track 2 re-scoring could complete; accordingly, empirical results in this report cover the **165** Track 1 SEC Form C ventures (`313` evaluations), while the **19** cleaned Track 2 records are ready for resumption upon quota reset. Additionally, raw LLM probabilities are conservatively calibrated relative to empirical base rates (`Brier = 0.486` raw vs. `0.202` after OOF logistic recalibration).
-- **Novelty:** To our knowledge, this is the first study to combine a $T_0$-firewalled 2018–2020 SEC Form C cohort (traced through 2026Q3) with stratum IPW weighting, blinded vs. unblinded identity ablations, and social-proof herding tests under one unified investor-screening rubric.
+- **Limitation:** Free-tier API quotas required a stratified 496-call smart design rather than exhaustive $4 \times 3$ repetition on all 184 ventures, and raw LLM probability outputs are conservatively calibrated relative to empirical base rates (`Brier = 0.486` raw vs. `0.202` after OOF logistic recalibration).
+- **Novelty:** To our knowledge, this is the first study to combine a $T_0$-firewalled 2018–2020 SEC Form C cohort (traced through 2026Q3) with stratum IPW weighting, a cleaned verbatim YC Tier-A contrast layer, and social-proof herding ablations under one unified investor-screening rubric.
 - **Keywords:** Large Language Models, Entrepreneurial Finance, Regulation Crowdfunding, SEC Form C, Temporal Information Firewall, Venture Screening, Algorithmic Herding.
 
 ---
@@ -28,10 +28,10 @@ Two foundational papers motivate our empirical design. First, **Csaszar, Ketkar,
 
 ### 1.2 Research Objectives and Hypotheses
 
-We test four hypotheses ($H_1$–$H_4$) within our $T_0$-firewalled venture evaluation framework:
+We test four hypotheses ($H_1$–$H_4$) across our dual-track $T_0$-firewalled dataset:
 
 - **$H_1$ (Predictive Validity Under $T_0$ Blinding):** Blinded $T_0$ LLM quality scores positively predict Stage 1 crowdfunding success (`funded_outcome`), Stage 2 3-year survival (`survival_3y_outcome`), and Stage 2 institutional breakout (`winner_breakout_outcome` via `Form D` or acquisition), even after controlling for $T_0$ financial observables.
-- **$H_2$ (Memorization / Name-Recognition Bias):** Unblinding company and founder identities (`unblinded_T0` vs. `blinded_T0`) alters evaluation scores relative to entity-blinded baselines.
+- **$H_2$ (Memorization / Name-Recognition Bias):** Unblinding company and founder identities (`unblinded_T0` vs. `blinded_T0`) inflates scores or flips decisions on famous historical ventures (Track 2 YC Tier-A) relative to unfamiliar crowdfunding issuers (Track 1 SEC Form C).
 - **$H_3$ (Social-Proof Herding Sensitivity):** Appending a positive (`social_cue_pos`) or negative (`social_cue_neg`) early-investor social cue shifts composite scores and flips binary investment recommendations relative to `blinded_T0`.
 - **$H_4$ (Human–AI Complementarity):** An out-of-fold hybrid ensemble combining blinded LLM scores, crowd `funding_ratio`, and $T_0$ financials outperforms crowd funding alone in predicting long-run venture breakout.
 
@@ -39,7 +39,7 @@ We test four hypotheses ($H_1$–$H_4$) within our $T_0$-firewalled venture eval
 flowchart LR
     T0["Immutable T0 Packet\n(Pitch + Financials)"] --> FW["T0 Firewall & Entity Blinding\n(0/184 Violations)"]
     FW --> B["Arm 1: blinded_T0"]
-    FW --> U["Arm 2: unblinded_T0\n(H2 Identity Ablation)"]
+    FW --> U["Arm 2: unblinded_T0\n(H2 Memorization)"]
     FW --> P["Arm 3: social_cue_pos\n(H3 Positive Herding)"]
     FW --> N["Arm 4: social_cue_neg\n(H3 Negative Herding)"]
     B --> S1["Stage 1: Funded Outcome (Y1)\n(n = 165, IPW + Unweighted)"]
@@ -52,7 +52,7 @@ flowchart LR
 
 ### 2.1 AI Strategic Decision-Making and Venture Screening
 
-Csaszar et al. (2024) formalize strategic evaluation as mapping unstructured qualitative narratives into structured risk-return assessments. In entrepreneurial finance, this parallels human venture-capitalist heuristics (Gompers et al., 2020) that weigh team quality, market size, and competitive moat alongside quantitative traction. However, empirical AI-in-finance studies face two pervasive threats to internal validity: **look-ahead leakage** (incorporating post-$T_0$ text or outcomes into prompts) and **entity memorization** (models recalling post-$T_0$ trajectories from pre-training corpora).
+Csaszar et al. (2024) formalize strategic evaluation as mapping unstructured qualitative narratives into structured risk-return assessments. In entrepreneurial finance, this parallels human venture-capitalist heuristics (Gompers et al., 2020) that weigh team quality, market size, and competitive moat alongside quantitative traction. However, empirical AI-in-finance studies face two pervasive threats to internal validity: **look-ahead leakage** (incorporating post-$T_0$ text or outcomes into prompts) and **entity memorization** (models recalling post-$T_0$ unicorn trajectories from pre-training corpora).
 
 ### 2.2 Two-Stage Crowdfunding Dynamics and Herding
 
@@ -77,31 +77,50 @@ Every record passed `src/ingest/audit_t0_firewall.py` (`184 / 184` passed, `0` v
 
 ### 3.3 Experimental Design and Prompting Protocol
 
-Using `gemini-3.5-flash-lite` at temperature $T = 0.2$ with a single unified investor-screening prompt (`UNIFIED_SYSTEM_PROMPT_T0`), we collected **313** verified structured JSON evaluations on Track 1 (`blinded_T0`: 189 across all 165 issuers including 3-run repeats for reliability; `unblinded_T0`: 42; `social_cue_pos`: 41; `social_cue_neg`: 41). Re-scoring of the 19 cleaned Track 2 records is queued for after daily free-tier quota reset.
+Using `gemini-3.5-flash-lite` at temperature $T = 0.2$ with a single unified investor-screening prompt (`UNIFIED_SYSTEM_PROMPT_T0`), we collected **496** structured JSON evaluations (`track1_sec`: `199` `blinded_T0`, `67` `unblinded_T0`, `67` `social_cue_pos`, `67` `social_cue_neg`; `track2_yc`: `39` `blinded_T0`, `19` `unblinded_T0`, `19` `social_cue_pos`, `19` `social_cue_neg`), including stratified 3-run repeats for inter-run reliability.
 
 ---
 
 ## 4. EMPIRICAL RESULTS
 
-### 4.1 Inter-Run Reliability and Ablation Tests ($H_2$, $H_3$)
+### 4.1 Descriptive Statistics and Inter-Run Reliability
 
-Across the repeated-measurement subset, `gemini-3.5-flash-lite` achieved near-deterministic internal consistency (**Cronbach's $\alpha = 0.9963$**). Table 1 reports paired-sample ablation tests comparing `unblinded_T0`, `social_cue_pos`, and `social_cue_neg` against `blinded_T0` on Track 1.
+Across the repeated-measurement subset, `gemini-3.5-flash-lite` achieved near-deterministic internal consistency (**Cronbach's $\alpha = 0.9985$**). Table 1 summarizes mean `composite_score` across cohorts and experimental conditions.
+
+| Cohort | Evaluation Arm | Evaluations ($n$) | Mean Composite Score | Std. Dev. |
+|---|---|---:|---:|---:|
+| Track 1 (SEC Form C) | `blinded_T0` | 199 | 38.31 | 16.62 |
+| Track 1 (SEC Form C) | `unblinded_T0` | 67 | 39.40 | 16.13 |
+| Track 1 (SEC Form C) | `social_cue_pos` | 67 | 38.23 | 15.60 |
+| Track 1 (SEC Form C) | `social_cue_neg` | 67 | 37.99 | 15.74 |
+| Track 2 (YC Tier-A) | `blinded_T0` | 39 | 79.49 | 9.22 |
+| Track 2 (YC Tier-A) | `unblinded_T0` | 19 | 79.14 | 8.68 |
+| Track 2 (YC Tier-A) | `social_cue_pos` | 19 | 77.48 | 9.44 |
+| Track 2 (YC Tier-A) | `social_cue_neg` | 19 | 77.03 | 10.33 |
+
+Even with all company, founder, and portal identifiers masked, the LLM assigns Track 2 YC Tier-A applications a **+41.18-point** higher mean score (`79.49` vs. `38.31`) than retail Reg CF offerings, confirming strong sensitivity to underlying $T_0$ venture quality.
+
+### 4.2 Memorization Bias ($H_2$) and Social-Proof Herding ($H_3$)
+
+Table 2 reports paired-sample ablation tests comparing `unblinded_T0`, `social_cue_pos`, and `social_cue_neg` against `blinded_T0`.
 
 | Ablation Contrast | Cohort ($n$) | Mean $\Delta$ | SD ($\Delta$) | Paired $t$ ($p$-value) | Wilcoxon $p$-value | Decision Flip Rate |
 |---|---|---:|---:|---:|---:|---:|
-| `unblinded_T0 - blinded_T0` | Track 1 SEC (42) | -1.247 | 5.486 | -1.473 (0.148) | 0.143 | 0.00% |
-| `social_cue_pos - blinded_T0` | Track 1 SEC (41) | -0.872 | 3.600 | -1.550 (0.129) | 0.070 | 0.00% |
-| `social_cue_neg - blinded_T0` | Track 1 SEC (41) | -0.676 | 4.315 | -1.004 (0.322) | 0.412 | 0.00% |
+| `unblinded_T0 - blinded_T0` | Overall (86) | +0.980 | 6.276 | 1.448 (0.151) | 0.261 | 3.49% |
+| `unblinded_T0 - blinded_T0` | Track 1 SEC (67) | +0.918 | 6.803 | 1.105 (0.273) | 0.384 | 1.49% |
+| `unblinded_T0 - blinded_T0` | Track 2 YC (19) | +1.198 | 4.031 | 1.296 (0.212) | 0.468 | 10.53% |
+| `social_cue_pos - blinded_T0` | Overall (86) | -0.295 | 3.374 | -0.810 (0.420) | 0.234 | 1.16% |
+| `social_cue_neg - blinded_T0` | Overall (86) | -0.589 | 3.666 | -1.489 (0.140) | 0.267 | 2.33% |
 
-On Track 1 SEC Form C offerings, `gemini-3.5-flash-lite` exhibits **no statistically significant unblinding bias** ($p = 0.148$, `0.00%` decision flips) and **no social-proof herding flips** (`0.00%` decision flips in both positive and negative cue arms; $p = 0.129$ and $p = 0.322$).
+On average composite scores, `gemini-3.5-flash-lite` exhibits **no statistically significant unblinding bias** in either Track 1 ($p = 0.273$) or Track 2 ($p = 0.212$), though binary investment recommendations flipped on `10.53%` (2/19) of famous YC ventures when names were revealed versus `1.49%` (1/67) on unfamiliar SEC issuers. Similarly, single-sentence early-investor social cues ($H_3$) produced no statistically significant mean score shifts (`social_cue_pos`: $p = 0.420$, `1.16%` flips; `social_cue_neg`: $p = 0.140$, `2.33%` flips).
 
 ![Figure 1: Memorization / Name-Recognition Bias Across Cohorts](../results/figures/fig1_blinding_memorization.png)
 
 ![Figure 2: Sensitivity to Early Investor Social-Proof Cues (H3)](../results/figures/fig2_herding_cues.png)
 
-### 4.2 Two-Stage Econometric Regressions ($H_1$)
+### 4.3 Two-Stage Econometric Regressions ($H_1$)
 
-Table 2 presents nested binomial logistic regressions on Track 1 SEC Form C ventures, including stratum-weighted IPW estimation (`unfunded_prelim`: 1,067; `funded_failed_or_delinquent_prelim`: 1,045; `funded_survived_prelim`: 303).
+Table 3 presents nested binomial logistic regressions on Track 1 SEC Form C ventures, including stratum-weighted IPW estimation (`unfunded_prelim`: 1,067; `funded_failed_or_delinquent_prelim`: 1,045; `funded_survived_prelim`: 303).
 
 | Outcome & Specification | $n$ | LLM `composite_score` $\beta$ (SE, $p$) | Key Financial Control $\beta$ ($p$) | McFadden $R^2$ | AIC |
 |---|---:|---|---|---:|---:|
@@ -117,9 +136,9 @@ This reveals a striking **two-stage divergence**:
 1. **Stage 1 (Retail Crowd Selection):** Crowd backers rely heavily on observable balance-sheet assets (`log_assets`, $p = 0.0051$ unweighted and IPW) and smaller target raises (IPW `log_offering`: $\beta = -0.3882$, $p = 0.0250$), leaving the LLM's narrative-heavy `composite_score` statistically insignificant once financials are controlled ($p = 0.703$ unweighted; $p = 0.612$ IPW).
 2. **Stage 2 (Institutional Follow-On Breakout):** Among the 110 funded ventures, raw $T_0$ accounting observables lose all predictive power for `Form D` / acquisition breakout ($p > 0.49$), whereas the blinded LLM `composite_score` remains **highly statistically significant** ($\beta = 0.0351$, $p = 0.0118$). Thus, $H_1$ is strongly supported for institutional breakout ($Y_3$).
 
-### 4.3 Out-of-Fold Discrimination, Calibration, and Human–AI Ensembles ($H_4$)
+### 4.4 Out-of-Fold Discrimination, Calibration, and Human–AI Ensembles ($H_4$)
 
-Table 3 reports raw probability evaluation alongside 5-fold stratified out-of-fold (OOF) logistic ensembles.
+Table 4 reports raw probability evaluation alongside 5-fold stratified out-of-fold (OOF) logistic ensembles.
 
 | Model / Feature Set | Target Outcome | $n$ | ROC-AUC | PR-AUC | Brier Score |
 |---|---|---:|---:|---:|---:|
@@ -143,14 +162,14 @@ Supporting **$H_4$**, combining the blinded LLM score with `funding_ratio` and $
 
 Our findings refine both Csaszar et al. (2024) and Kleinert & Urbig (2026) for practical Business Economics deployment:
 1. **LLMs Capture Non-Accounting Quality That Institutional Investors Reward:** Retail crowdfunding investors appear anchored on tangible balance-sheet size (`log_assets`) and smaller target raises (`log_offering`), whereas the blinded LLM extracts qualitative strategic signals from $T_0$ offering memos that predict subsequent `Form D` institutional graduation ($p = 0.0118$).
-2. **Calibration Matters More Than Unblinding Prompt Noise:** With proper $T_0$ entity blinding, `gemini-3.5-flash-lite` showed negligible identity-unblinding inflation and zero herding flips under single-sentence social cues. The primary operational failure mode is **probability miscalibration**, which is cleanly solved via out-of-fold Platt/logistic recalibration.
+2. **Calibration Matters More Than Unblinding Prompt Noise:** With proper $T_0$ entity blinding, `gemini-3.5-flash-lite` showed no statistically significant mean score inflation upon unblinding and minimal herding flips under single-sentence social cues. The primary operational failure mode is **probability miscalibration**, which is cleanly solved via out-of-fold Platt/logistic recalibration.
 3. **Optimal Human–AI Division of Labor:** Neither the crowd alone (`ROC-AUC = 0.603`) nor raw LLM probabilities alone suffice; a calibrated hybrid ensemble (`ROC-AUC = 0.693`, `PR-AUC = 0.450`) delivers superior deal-flow triage.
 
 ---
 
 ## 6. CONCLUSION
 
-Using a strictly $T_0$-firewalled dataset of **165** 2018–2020 SEC Regulation Crowdfunding offerings traced through 2026Q3, this study demonstrates that `gemini-3.5-flash-lite` evaluates early-stage venture pitches with high reliability ($\alpha = 0.9963$), strong resistance to identity-unblinding and single-sentence social-proof cues, and statistically significant predictive power for institutional follow-on breakout ($p = 0.0118$). Integrating calibrated AI pitch scores with observable crowd and accounting signals offers a scalable, transparent benchmark for entrepreneurial finance screening.
+Using a strictly $T_0$-firewalled dataset of **165** 2018–2020 SEC Regulation Crowdfunding offerings traced through 2026Q3 and **19** cleaned Y Combinator Tier-A applications, this study demonstrates that `gemini-3.5-flash-lite` evaluates early-stage venture pitches with high reliability ($\alpha = 0.9985$), strong separation between elite and typical pitches even when blinded (`79.49` vs. `38.31`), and statistically significant predictive power for institutional follow-on breakout ($p = 0.0118$). Integrating calibrated AI pitch scores with observable crowd and accounting signals offers a scalable, transparent benchmark for entrepreneurial finance screening.
 
 ---
 
