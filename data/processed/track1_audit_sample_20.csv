@@ -1,0 +1,21 @@
+record_id,company_name,filing_date,issuer_website,funded_outcome,survival_3y_outcome,winner_breakout_outcome,survival_source,amount_raised,funding_ratio
+SEC-0001674612,Zelgor Inc,20200227,zelgor.com,1,1,0,car_3y_plus,,1.0
+SEC-0001817637,Ionica Sciences,20200821,https://www.ionicasci.com/,0,,0,unfunded_stage1,,0.0
+SEC-0001817694,"UpChoose, PBC",20201203,https://www.upchoose.com/,1,1,0,delinquency_rescued_website,,1.0
+SEC-0001825741,"Tezcat, LLC",20200924,http://www.tepeyolotbeer.com,1,0,0,car_ceased_and_inactive,,1.0
+SEC-0001836088,"Marco Bianca, LLC",20201214,www.strattakitchen.com,0,,0,unfunded_stage1,,0.0
+SEC-0001823315,"Mosquito Steve, Inc.",20200918,https://mosquitosteve.com,1,1,0,delinquency_rescued_website,,1.0
+SEC-0001830166,"Energy Exploration Technologies, Inc.",20201110,www.energyx.com,1,1,1,car_3y_plus,,1.0
+SEC-0001783007,"Merrimack Ales, LLC",20190723,http://merrimackales.com/,1,0,0,car_ceased_and_inactive,,1.0
+SEC-0001751259,"5 Generation Bakers, LLC",20180830,https://jennyleeswirlbread.com/,1,1,0,car_3y_plus,,1.0
+SEC-0001803551,"Vector Brewing, LLC",20200226,https://vectorbrewing.com,0,,0,unfunded_stage1,,0.0
+SEC-0001650631,"DoneGood, PBC",20180817,https://donegood.co/,1,1,1,car_3y_plus,,1.0
+SEC-0001825264,CHPL Real Estate LLC,20201008,www.chapelgvl.com,1,1,0,delinquency_rescued_website,,1.0
+SEC-0001648770,"Balloonr, Inc.",20180619,https://balloonr.com,1,1,0,car_3y_plus,,1.0
+SEC-0001661779,"STARTENGINE CROWDFUNDING, INC.",20190122,www.startengine.com,1,1,1,car_3y_plus,,1.0
+SEC-0001751635,"Neopenda, PBC",20180831,www.neopenda.com/,1,1,1,delinquency_rescued_form_d,,1.0
+SEC-0001778950,"SHOWDEO, INC",20190725,http:/showdeo.com/,0,,0,unfunded_stage1,,0.0
+SEC-0001817727,Fire Grounds Coffee Co LLC,20200713,https://www.firegroundscoffeecompany.com,1,1,0,car_3y_plus,,1.0
+SEC-0001722710,"Myways, Inc.",20180220,http://www.circleof.io/,0,,0,unfunded_stage1,,0.0
+SEC-0001750513,Oz. House LLC,20180830,www.oztaphouse.com,1,1,0,car_3y_plus,,1.0
+SEC-0001562529,SnapDNA Corp,20201222,http://snapdna.com/,1,1,0,car_3y_plus,,1.0
