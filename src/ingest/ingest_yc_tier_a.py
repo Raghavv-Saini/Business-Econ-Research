@@ -15,7 +15,7 @@ from pypdf import PdfReader
 
 from src.common import build_company_aliases
 
-DEFAULT_QUEUE_PATH = Path(r"c:\Users\meetp\Desktop\BE\option_b_tier_a_queue_21_v2.jsonl")
+DEFAULT_QUEUE_PATH = Path(__file__).resolve().parents[3] / "option_b_tier_a_queue_21_v2.jsonl"
 USER_AGENT = "BusinessEconResearchBot/1.0 (academic-research; contact: research@example.edu)"
 
 URL_OVERRIDES: dict[str, str] = {
@@ -313,6 +313,8 @@ def run_yc_ingestion(repo_root: Path, queue_path: Path = DEFAULT_QUEUE_PATH) -> 
             for line in fh:
                 if line.strip():
                     raw_records.append(json.loads(line))
+    else:
+        print(f"Warning: YC queue file not found at {queue_path}; continuing with verified extra apps only.")
     raw_records.extend(VERIFIED_EXTRA_APPS)
 
     yc_statuses = _fetch_yc_oss_statuses()

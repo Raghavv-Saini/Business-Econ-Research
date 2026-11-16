@@ -1,4 +1,5 @@
 import json
+from src.common import SOCIAL_CUE_NEG, SOCIAL_CUE_POS
 from src.eval.run_llm_experiment import load_completed_keys, run_experiment
 
 
@@ -59,6 +60,10 @@ def test_resumable_experiment_skips_completed_runs(tmp_path, monkeypatch):
     monkeypatch.setattr("src.eval.run_llm_experiment.call_gemini_json", fake_gemini)
     run_experiment([str(jsonl)], str(out_csv), n_runs=2)
     assert len(calls) == 8  # 4 arms * 2 runs
+    assert any(SOCIAL_CUE_POS in p and "Investor Note:" in p for p in calls)
+    assert any(SOCIAL_CUE_NEG in p and "Investor Note:" in p for p in calls)
+    blinded_prompts = [p for p in calls if "Investor Note:" not in p and "Acme" not in p]
+    assert len(blinded_prompts) == 2
     assert len(load_completed_keys(str(out_csv))) == 8
     run_experiment([str(jsonl)], str(out_csv), n_runs=2)
     assert len(calls) == 8  # Resumed without duplicate calls
