@@ -129,9 +129,9 @@ Analyzing selection across Stage 1 and Stage 2 revealed a marked divergence betw
 | Stage 2: 3-Year Survival | 110 | Weak positive link (p = 0.1681) | Early revenue showed a mild positive trend (p = 0.1930) |
 | Stage 2: Institutional Breakout | 110 | Yes, significant predictor (p = 0.0116) | Launch-day financials alone were not predictive (p > 0.49) |
 
-### 4.4 Combined human and model decision performance
-
-Using five-fold cross-validation on out-of-sample data, integrating model pitch scores with crowdfunding outcomes and initial financials yielded higher predictive precision than relying on crowdfunding signals alone:
+### 4.4 Combining Human and AI Decisions and Their Performance 
+	
+On the out of sample data we used five fold cross validation , integrating model pitch scores with crowdfunding outcomes .  the results we got are that the company's initial financial information gave more accurate predictions than using crowdfunding data alone :
 
 | What Information Was Used | Outcome Predicted | Prediction Accuracy (ROC-AUC) | Winner Precision (PR-AUC) |
 |---|---|---:|---:|
@@ -140,9 +140,10 @@ Using five-fold cross-validation on out-of-sample data, integrating model pitch 
 | AI Score Only | Stage 1 Funded (n = 165) | 57.4% | 73.7% |
 | AI + Launch Financials | Stage 1 Funded (n = 165) | 69.1% | 81.3% |
 
-An intersection decision rule highlights this complementarity: across the 6 startups that simultaneously secured crowd funding and received an affirmative investment recommendation from the blinded model, 6 of 6 (100%) subsequently attained institutional financing or acquisition, compared to 21.4% among the remainder of the cohort. 
+Across the 6 startups that simultaneously received crowd funds and received positive recommendation from the model , all 6 got funding from big investors or were acquired . 
 
-Raw model probability estimates exhibited systematic conservatism relative to the observed 66.7% crowdfunding success baseline. Applying isotonic probability recalibration reduced the Brier error score from 0.486 to 0.202.
+Initially the model underestimated the chances of crowdfunding success compared to the actual success rate of 66.7% . After adjusting the model's predictions , it's error score improved significantly from 0.486 to 0.202
+
 
 ![Figure 3: Prediction Accuracy on Unseen Startups (Stage 1 and Stage 2)](../results/figures/fig3_roc_pr_curves.png)
 
@@ -150,19 +151,23 @@ Raw model probability estimates exhibited systematic conservatism relative to th
 
 ---
 
-## 5. Discussion and Implications
+## 5. Discussion and Their Impact
 
-1. Qualitative pitch evaluation vs. tangible asset signals: Retail crowdfunding participants rely heavily on tangible balance-sheet assets and modest target figures. In contrast, blinded language model ratings capture qualitative commercial viability and market positioning within the pitch narrative, attributes that correlate with subsequent institutional venture investment (p = 0.0116).
-2. Protocol discipline and sentiment sanitization: While identity disclosure produced negligible average rating shifts in `gemini-3.5-flash-lite`, single-sentence sentiment cues induced systematic score deviations of +4.74 and -3.93 points (p < 0.0001). Operational screening pipelines must isolate narrative facts from unvetted third-party commentary and recalibrate subjective probability outputs.
-3. Decision complementarity: Neither crowd participation nor automated narrative scoring provides a sufficient standalone filter. Joining retail market signals, model pitch analysis, and baseline balance-sheet records achieved 69.1% classification accuracy, improving on the 60.3% benchmark produced by crowdfunding outcomes alone.
+1. Business Idea Evaluation vs. Actual Assets : Crowdfunding investors focus on a startups assets and  balance sheet . However , blinded Ai models evaluate the business idea , market potential and positions in the market which have higher chance of getting investment from professional investors (p = 0.0116) .
+
+2. Fair Evaluation Without Biased Opinions :  After telling the model(gemini-3.5-flash-lite) who was behind a startup had  no effect on the average rating . However , if we add just one positive comment its score will increase by 4.74 or one negative comment its score will decrease by 3.93 . This shows that Ai rating can be influenced by and outside opinion . Therefore , we should not provide any information of actual business facts and other outside opinion , so that the model won't be biased and can give more reliable predictions .
+
+3. How Different Decisions Work Together : Neither crowdfunding data nor Ai given evaluation is enough to judge a startup's success. However , after combining the crowdfunding data with Ai analysis of pitches and the financial records of startups we achieved an accuracy of 69.1% , which we more than the accuracy of 0.3% we got when using crowdfunding data only.
+
 
 ---
 
-## 6. Conclusion
+## 6. 6. Conclusion 
 
-Evaluating 184 historical ventures (165 SEC Regulation Crowdfunding offerings tracked through Q3 2026 and 19 original Y Combinator submissions) using `gemini-3.5-flash-lite` demonstrates that language models can evaluate early-stage venture documentation with high stability (Cronbach's alpha of 0.9985) and distinguish startup tiers without relying on corporate names (scoring YC applications at 79.5 versus 38.3 for crowdfunding filings). 
+After analyzing 184 startups (out of which 165 were crowdfunding campaigns and 19 were Y Combinator applications) , we found out that the Ai model(gemini-3.5-flash-lite) was able to evaluate startup documents consistently(score of 0.9985). It also gave higher scores to Y Combinator applications of score 79.5 than crowdfunding applications with score 38.3 , even though it did not know the names of the startups.
 
-Although models exhibit measurable sensitivity to external sentiment cues (+4.74 points for positive cues and -3.93 points for negative cues, p < 0.0001), blinded evaluations capture genuine forward-looking signals: pitch ratings significantly predicted institutional venture financing among funded enterprises (p = 0.0116). Combining model ratings with retail crowd decisions and launch financials increased institutional winner prediction accuracy from 60.3% to 69.1%. When integrated with verified financial disclosures and human capital decisions, blinded model evaluations serve as an effective instrument for early-stage venture screening.
+The models can be influenced by positive or negative opinions but their separate evaluation of startup pitches gives useful predictions for their future success . we found out that positive comments increased the score of the Ai by 4.74 while the negative comments decreased the score by 3.93 , the pitch ratings given by the ai model significantly helped startups in receiving investments from professional investors(p= 0.0116) , and combining Ai ratings with the crowdfunding data and financial records increased the prediction accuracy from 60.3% to 69.1% . So , combining Ai analysis with verified financial records and human insvestment decisions helps to identify promising startups at an early stage.
+
 
 ---
 
